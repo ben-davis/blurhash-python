@@ -56,6 +56,8 @@ def encode(data, x_components, y_components):
     width = image.width
     height = image.height
 
+    del rgb_data
+
     return "", 10, 10
 
     # rgb = _ffi.new("uint8_t[]", rgb_data)
