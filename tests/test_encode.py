@@ -9,16 +9,16 @@ def test_encode_file():
     with open("tests/pic2.png", "rb") as image_file:
         result, width, height = encode(image_file.read(), 4, 3)
 
-    assert width == 314
-    assert height == 176
-    assert result == "LlMF%n00%#MwS|WCWEM{R*bbWBbH"
+    assert width == 50
+    assert height == 28
+    assert result == "LjL{rA00%#Mxg2RkWYIoR*X8R*WV"
 
 
 def test_encode_black_and_white_picture():
     with open("tests/pic2_bw.png", "rb") as image_file:
         result, _, _ = encode(image_file.read(), 4, 3)
 
-    assert result == "LjIY5?00?bIUofWBWBM{WBofWBj["
+    assert result == "LhI5Y-00?bIUt7RjayIUWBofWBay"
 
 
 def test_invalid_image():

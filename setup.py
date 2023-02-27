@@ -27,6 +27,7 @@ setup(
     install_requires=[
         "cffi",
         "pyvips",
+        "numpy",
         "six",
     ],
     setup_requires=[

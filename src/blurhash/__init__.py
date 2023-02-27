@@ -4,6 +4,7 @@ import sys
 from enum import Enum
 from itertools import chain
 
+import numpy
 import pyvips
 from pyvips.error import Error as PyvipsError
 from six.moves import zip
@@ -36,45 +37,45 @@ class BlurhashDecodeError(Exception):
 
 
 def encode(data, x_components, y_components):
+    # Resize to save memory when loading values into Python
     try:
-        image = pyvips.Image.new_from_buffer(data, "")
+        image = pyvips.Image.thumbnail_buffer(data, 50)
     except PyvipsError:
         raise IOError()
 
-    num_bands = min(image.bands, 3)
+    # Remove the alpha channel, if it exists
+    if image.hasalpha():
+        image = image[: (image.bands - 1)]
 
-    if num_bands == 3:
-        bands = [
-            list(chain.from_iterable(image[band].tolist())) for band in range(num_bands)
-        ]
-    else:
-        red = list(chain.from_iterable(image[0].tolist()))
-        bands = [red, red, red]
+    # If there are less than 3 bands, pad using the first
+    if image.bands < 3:
+        image = image.bandjoin([image[0] for _ in range(3 - image.bands)])
 
-    rgb_data = list(chain.from_iterable(zip(*bands)))
-    print("RGB DATA SIZE: ", sys.getsizeof(rgb_data) / 1000 / 1000)
+    np_array = numpy.ndarray(
+        buffer=image.write_to_memory(),
+        dtype=numpy.uint8,
+        shape=[image.width, image.height, image.bands],
+    )
+
+    rgb_data = np_array.flatten().tolist()
     width = image.width
     height = image.height
 
-    del rgb_data
+    rgb = _ffi.new("uint8_t[]", rgb_data)
+    bytes_per_row = _ffi.cast("size_t", width * 3)
+    width = _ffi.cast("int", width)
+    height = _ffi.cast("int", height)
+    x_components = _ffi.cast("int", x_components)
+    y_components = _ffi.cast("int", y_components)
 
-    return "", 10, 10
+    result = _lib.create_hash_from_pixels(
+        x_components, y_components, width, height, rgb, bytes_per_row
+    )
 
-    # rgb = _ffi.new("uint8_t[]", rgb_data)
-    # bytes_per_row = _ffi.cast("size_t", width * 3)
-    # width = _ffi.cast("int", width)
-    # height = _ffi.cast("int", height)
-    # x_components = _ffi.cast("int", x_components)
-    # y_components = _ffi.cast("int", y_components)
+    if result == _ffi.NULL:
+        raise ValueError("Invalid x_components or y_components")
 
-    # result = _lib.create_hash_from_pixels(
-    #     x_components, y_components, width, height, rgb, bytes_per_row
-    # )
-
-    # if result == _ffi.NULL:
-    #     raise ValueError("Invalid x_components or y_components")
-
-    # return _ffi.string(result).decode(), image.width, image.height
+    return _ffi.string(result).decode(), image.width, image.height
 
 
 def decode(blurhash, width, height, punch=1, mode=PixelMode.RGB):
