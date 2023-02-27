@@ -34,13 +34,9 @@ class BlurhashDecodeError(Exception):
         return "Failed to decode blurhash {}".format(self.blurhash)
 
 
-def encode(image_file, x_components, y_components):
+def encode(data, x_components, y_components):
     try:
-        image = (
-            pyvips.Image.new_from_file(image_file)
-            if isinstance(image_file, str)
-            else pyvips.Image.new_from_buffer(image_file.read(), "")
-        )
+        image = pyvips.Image.new_from_buffer(data, "")
     except PyvipsError:
         raise IOError()
 
@@ -72,7 +68,7 @@ def encode(image_file, x_components, y_components):
     if result == _ffi.NULL:
         raise ValueError("Invalid x_components or y_components")
 
-    return _ffi.string(result).decode()
+    return _ffi.string(result).decode(), image.width, image.height
 
 
 def decode(blurhash, width, height, punch=1, mode=PixelMode.RGB):
