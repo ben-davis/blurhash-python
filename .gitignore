@@ -105,3 +105,5 @@ ENV/
 
 # Pipenv
 Pipfile.lock
+
+.ccls-cache

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import sys
 from enum import Enum
 from itertools import chain
 
@@ -51,24 +52,27 @@ def encode(data, x_components, y_components):
         bands = [red, red, red]
 
     rgb_data = list(chain.from_iterable(zip(*bands)))
+    print("RGB DATA SIZE: ", sys.getsizeof(rgb_data) / 1000 / 1000)
     width = image.width
     height = image.height
 
-    rgb = _ffi.new("uint8_t[]", rgb_data)
-    bytes_per_row = _ffi.cast("size_t", width * 3)
-    width = _ffi.cast("int", width)
-    height = _ffi.cast("int", height)
-    x_components = _ffi.cast("int", x_components)
-    y_components = _ffi.cast("int", y_components)
+    return "", 10, 10
 
-    result = _lib.create_hash_from_pixels(
-        x_components, y_components, width, height, rgb, bytes_per_row
-    )
+    # rgb = _ffi.new("uint8_t[]", rgb_data)
+    # bytes_per_row = _ffi.cast("size_t", width * 3)
+    # width = _ffi.cast("int", width)
+    # height = _ffi.cast("int", height)
+    # x_components = _ffi.cast("int", x_components)
+    # y_components = _ffi.cast("int", y_components)
 
-    if result == _ffi.NULL:
-        raise ValueError("Invalid x_components or y_components")
+    # result = _lib.create_hash_from_pixels(
+    #     x_components, y_components, width, height, rgb, bytes_per_row
+    # )
 
-    return _ffi.string(result).decode(), image.width, image.height
+    # if result == _ffi.NULL:
+    #     raise ValueError("Invalid x_components or y_components")
+
+    # return _ffi.string(result).decode(), image.width, image.height
 
 
 def decode(blurhash, width, height, punch=1, mode=PixelMode.RGB):
