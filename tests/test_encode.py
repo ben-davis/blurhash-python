@@ -1,22 +1,28 @@
 from __future__ import absolute_import
 
 import pytest
+import pyvips
 
 from blurhash import encode
 
 
+def test_encode_image():
+    image = pyvips.Image.new_from_file("tests/pic2.png")
+    result = encode(image, 4, 3)
+
+    assert result == "LjL{rA00%#Mxg2RkWYIoR*X8R*WV"
+
+
 def test_encode_file():
     with open("tests/pic2.png", "rb") as image_file:
-        result, width, height = encode(image_file.read(), 4, 3)
+        result = encode(image_file.read(), 4, 3)
 
-    assert width == 50
-    assert height == 28
     assert result == "LjL{rA00%#Mxg2RkWYIoR*X8R*WV"
 
 
 def test_encode_black_and_white_picture():
     with open("tests/pic2_bw.png", "rb") as image_file:
-        result, _, _ = encode(image_file.read(), 4, 3)
+        result = encode(image_file.read(), 4, 3)
 
     assert result == "LhI5Y-00?bIUt7RjayIUWBofWBay"
 
